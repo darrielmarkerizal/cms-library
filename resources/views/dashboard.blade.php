@@ -42,6 +42,9 @@
                                         Judul
                                     </th>
                                     <th class="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
+                                        Deskripsi
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
                                         Quantity
                                     </th>
                                     <th class="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
@@ -50,25 +53,18 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr class="border-b">
-                                    <td class="px-4 py-4 text-sm text-gray-900">1</td>
-                                    <td class="px-4 py-4 text-sm text-gray-900">
-                                        <img src="cover-url" alt="Cover" class="w-16 h-16 object-cover rounded-md">
-                                    </td>
-                                    <td class="px-4 py-4 text-sm text-gray-900">Contoh Judul Buku</td>
-                                    <td class="px-4 py-4 text-sm text-gray-900">10</td>
-                                    <td class="px-4 py-4 text-sm text-gray-900">
-                                        <a href="#" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
-                                            Download
-                                        </a>
-                                        <a href="#" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 ml-4">
-                                            Edit
-                                        </a>
-                                        <a href="#" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 ml-4">
-                                            Hapus
-                                        </a>
-                                    </td>
-                                </tr>
+                                @foreach($books as $book)
+                                    <tr class="border-b">
+                                        <td class="px-4 py-4 text-sm text-gray-900">{{ $loop->iteration }}</td>
+                                        <td class="px-4 py-4 text-sm text-gray-900">
+                                            <img src="{{ $book->cover_url }}" alt="Cover" class="w-16 h-16 object-cover rounded-md">
+                                        </td>
+                                        <td class="px-4 py-4 text-sm text-gray-900">{{ $book->title }}</td>
+                                        <td class="px-4 py-4 text-sm text-gray-900">{{ $book->description }}</td>
+                                        <td class="px-4 py-4 text-sm text-gray-900">{{ $book->quantity }}</td>
+                                        <!--  -->
+                                    </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -80,8 +76,9 @@
     <div id="bookModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
         <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
             <h2 class="text-xl font-semibold mb-4">Tambah Buku Baru</h2>
-            <form id="bookForm">
+            <form id="bookForm" method="POST" action="{{ route('books.store') }}" enctype="multipart/form-data">
                 @csrf
+                <input type="hidden" name="user_id" value="{{ Auth::id() }}">
                 <div class="mb-4">
                     <label for="title" class="block text-sm font-medium text-gray-700">Judul Buku</label>
                     <input
@@ -119,6 +116,9 @@
                         class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
                     >
                         <option value="">Pilih kategori</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="mb-4">
@@ -146,6 +146,7 @@
                         type="button"
                         id="closeModal"
                         class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                        onclick="document.getElementById('bookModal').classList.add('hidden')"
                     >
                         Tutup
                     </button>
@@ -161,59 +162,40 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            fetch('/api/categories')
-                .then(response => response.json())
-                .then(data => {
-                    const categorySelect = document.getElementById('category');
-                    data.forEach(category => {
-                        const option = document.createElement('option');
-                        option.value = category.id;
-                        option.textContent = category.name;
-                        categorySelect.appendChild(option);
-                    });
-                })
-                .catch(error => console.error('Error fetching categories:', error));
-        });
+    document.getElementById('openModal').addEventListener('click', function() {
+        document.getElementById('bookModal').classList.remove('hidden');
+    });
 
-        document.getElementById('openModal').addEventListener('click', function() {
-            document.getElementById('bookModal').classList.remove('hidden');
-        });
+    document.getElementById('bookForm').addEventListener('submit', function(event) {
+        event.preventDefault(); 
 
-        document.getElementById('closeModal').addEventListener('click', function() {
-            document.getElementById('bookModal').classList.add('hidden');
-        });
+        const formData = new FormData(this);
 
-        document.getElementById('bookForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            let formData = new FormData(this);
+        formData.append('user_id', '{{ Auth::id() }}');
 
-            const categorySelect = document.getElementById('category');
-            formData.append('category_id', categorySelect.value);
-
-            const userId = "{{ auth()->user()->id }}";
-            formData.append('user_id', userId);
-
-            fetch('/api/books', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(errorData => {
-                        throw new Error(errorData.messages.description[0]);
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Success:', data);
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+            }
+        })
+        .then(response => {
+            if (response.status === 201) {
                 document.getElementById('bookModal').classList.add('hidden');
-            })
-            .catch(error => {
-                console.error('Error:', error.message);
-                alert(error.message);
-            });
+                location.reload();
+            } else {
+                return response.json();
+            }
+        })
+        .then(data => {
+            if (data && !data.success) {
+                console.error('Error:', data);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
         });
-    </script>
+    });
+</script>
 </x-app-layout>
