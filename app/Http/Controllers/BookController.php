@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Book;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+
 
 class BookController extends Controller
 {
@@ -64,34 +66,30 @@ public function store(Request $request)
         return response()->json($book);
     }
 
+
     public function update(Request $request, Book $book)
     {
-        $validatedData = $request->validate([
-            'title' => 'sometimes|required|string|max:255',
-            'category_id' => 'sometimes|required|exists:categories,id',
-            'description' => 'sometimes|required|string',
-            'quantity' => 'sometimes|required|integer',
-            'pdf_file' => 'sometimes|required|string',
-            'cover_image' => 'sometimes|required|string',
-            'path_cover' => 'sometimes|required|string',
-            'path_pdf' => 'sometimes|required|string',
-            'user_id' => 'sometimes|required|exists:users,id',
-        ]);
-
-        $book->update($validatedData);
-        return response()->json($book);
+        try {
+            $validatedData = $request->validate([
+                'title' => 'sometimes|required|string|max:255',
+                'category_id' => 'sometimes|required|exists:categories,id',
+                'description' => 'sometimes|required|string',
+                'quantity' => 'sometimes|required|integer',
+                'pdf_file' => 'sometimes|required|string',
+                'cover_image' => 'sometimes|required|string',
+                'path_cover' => 'sometimes|required|string',
+                'path_pdf' => 'sometimes|required|string',
+                'user_id' => 'sometimes|required|exists:users,id',
+            ]);
+    
+            $book->update($validatedData);
+            return response()->json($book);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['error' => 'Book not found'], 404);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
-
-    public function destroy(Book $book)
-{
-    try {
-        $book->delete();
-        
-        return redirect()->route('dashboard')->with('success', 'Book deleted successfully.');
-    } catch (\Exception $e) {
-        return redirect()->route('dashboard')->with('error', 'Failed to delete the book.')->withErrors($e->getMessage());
-    }
-}
 
 public function download($id)
 {
