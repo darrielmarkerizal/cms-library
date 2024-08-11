@@ -69,7 +69,7 @@
                                     <tr class="border-b">
                                         <td class="px-4 py-4 text-sm text-gray-900">{{ $loop->iteration }}</td>
                                         <td class="px-4 py-4 text-sm text-gray-900">
-                                            <img src="{{ $book->cover_url }}" alt="Cover"
+                                            <img src="{{ asset('storage/' . $book->path_cover) }}" alt="Cover"
                                                 class="w-16 h-16 object-cover rounded-md">
                                         </td>
                                         <td class="px-4 py-4 text-sm text-gray-900">{{ $book->title }}</td>
@@ -85,7 +85,7 @@
                                                     class="text-red-600 hover:text-red-900">Delete</button>
                                             </form>
                                             <button class="text-blue-600 hover:text-blue-900">Edit</button>
-                                            <button class="text-green-600 hover:text-green-900">Download</button>
+                                            <a href="{{ route('books.download', $book->id) }}" class="text-green-600 hover:text-green-900">Download</a>
                                         </td>
                                     </tr>
                                 @endforeach

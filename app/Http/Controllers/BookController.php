@@ -15,46 +15,49 @@ class BookController extends Controller
     return view('dashboard', compact('books', 'categories'));
 }
 
-    public function store(Request $request)
-    {
-        try {
-            $validatedData = $request->validate([
-                'title' => 'required|string|max:255',
-                'description' => 'required|string',
-                'quantity' => 'required|integer',
-                'category_id' => 'required|exists:categories,id',
-                'pdf_file' => 'required|file|mimes:pdf|max:2048',
-                'cover_image' => 'required|file|mimes:jpeg,png,jpg,gif|max:2048',
-                'user_id' => 'required|exists:users,id',
-            ]);
-    
-    
-            if ($request->hasFile('pdf_file')) {
-                $validatedData['path_pdf'] = $request->file('pdf_file')->store('pdfs', 'public');
-            }
-    
-            if ($request->hasFile('cover_image')) {
-                $validatedData['path_cover'] = $request->file('cover_image')->store('covers', 'public');
-            }
-    
-            $book = Book::create($validatedData);
-    
-            return response()->json($book, 201);
-    
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'error' => 'Validation failed',
-                'messages' => $e->errors(),
-                'cause' => 'One or more fields did not pass validation.'
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred',
-                'message' => 'Something went wrong. Please try again later.',
-                'details' => env('APP_DEBUG') ? $e->getMessage() : 'Error details are not available.'
-            ], 500);
+public function store(Request $request)
+{
+    try {
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'quantity' => 'required|integer',
+            'category_id' => 'required|exists:categories,id',
+            'pdf_file' => 'required|file|mimes:pdf|max:2048',
+            'cover_image' => 'required|file|mimes:jpeg,png,jpg,gif|max:2048',
+            'user_id' => 'required|exists:users,id',
+        ]);
+
+        if ($request->hasFile('pdf_file')) {
+            $pdfFile = $request->file('pdf_file');
+            $pdfFilename = time() . '_' . str_replace(' ', '_', $pdfFile->getClientOriginalName());
+            $validatedData['path_pdf'] = $pdfFile->storeAs('pdfs', $pdfFilename, 'public');
         }
+
+        if ($request->hasFile('cover_image')) {
+            $coverImage = $request->file('cover_image');
+            $coverFilename = time() . '_' . str_replace(' ', '_', $coverImage->getClientOriginalName());
+            $validatedData['path_cover'] = $coverImage->storeAs('covers', $coverFilename, 'public');
+        }
+
+        $book = Book::create($validatedData);
+
+        return response()->json($book, 201);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'error' => 'Validation failed',
+            'messages' => $e->errors(),
+            'cause' => 'One or more fields did not pass validation.'
+        ], 422);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'An error occurred',
+            'message' => 'Something went wrong. Please try again later.',
+            'details' => env('APP_DEBUG') ? $e->getMessage() : 'Error details are not available.'
+        ], 500);
     }
+}
 
     public function show(Book $book)
     {
@@ -90,4 +93,15 @@ class BookController extends Controller
     }
 }
 
+public function download($id)
+{
+    $book = Book::findOrFail($id);
+    $filePath = public_path('storage/' . $book->path_pdf);
+
+    if (file_exists($filePath)) {
+        return response()->download($filePath);
+    } else {
+        return response()->json(['error' => 'File not found.', 'path' => $filePath], 404);
+    }
+}
 }
