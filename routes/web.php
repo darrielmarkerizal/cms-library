@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -19,6 +20,10 @@ Route::view('/', 'welcome');
 Route::get('dashboard', [BookController::class, 'index'])
     ->middleware(['auth'])
     ->name('dashboard');
+
+    Route::get('categories', [CategoryController::class, 'index'])
+    ->middleware(['auth'])
+    ->name('categories');
 
 Route::view('profile', 'profile')
     ->middleware(['auth'])
