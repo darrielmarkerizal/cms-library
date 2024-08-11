@@ -56,7 +56,7 @@
                                         <td class="px-4 py-4 text-sm text-gray-900">{{ $category->name }}</td>
                                         <td class="px-4 py-4 text-sm text-gray-900 space-x-2">
                                             <button class="text-red-600 hover:text-red-900" onclick="deleteCategory({{ $category->id}})">Delete</button>
-                                            <button class="text-blue-600 hover:text-blue-900">Edit</button>
+                                            <button class="text-blue-600 hover:text-blue-900" onclick="openEditModal({{ json_encode($category)}})">Edit</button>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -94,6 +94,25 @@
             </form>
         </div>
     </div>
+
+    <div id="editModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="flex items-center justify-center min-h-screen">
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold mb-4">Edit Kategori</h2>
+            <form id="editCategoryForm">
+                <input type="hidden" id="editCategoryId">
+                <div class="mb-4">
+                    <label for="editCategoryName" class="block text-sm font-medium text-gray-700">Nama Kategori</label>
+                    <input type="text" id="editCategoryName" name="name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+                <div class="flex justify-end">
+                    <button type="button" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 mr-2" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>    
 
     <script>
         document.getElementById('openModal').addEventListener('click', function() {
@@ -160,5 +179,42 @@
             });
         }
     }
+
+    function openEditModal(category) {
+        document.getElementById('editCategoryId').value = category.id;
+        document.getElementById('editCategoryName').value = category.name;
+        document.getElementById('editModal').classList.remove('hidden');
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').classList.add('hidden');
+    }
+
+    document.getElementById('editCategoryForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const categoryId = document.getElementById('editCategoryId').value;
+        const categoryName = document.getElementById('editCategoryName').value;
+
+        fetch(`/api/categories/update/${categoryId}`, {
+            method: 'PUT',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: categoryName })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.message);
+            } else {
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to update category');
+        });
+    });
     </script>
 </x-app-layout>
