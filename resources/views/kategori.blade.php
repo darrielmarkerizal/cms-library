@@ -55,7 +55,7 @@
                                         <td class="px-4 py-4 text-sm text-gray-900">{{ $loop->iteration }}</td>
                                         <td class="px-4 py-4 text-sm text-gray-900">{{ $category->name }}</td>
                                         <td class="px-4 py-4 text-sm text-gray-900 space-x-2">
-                                            <button class="text-red-600 hover:text-red-900">Delete</button>
+                                            <button class="text-red-600 hover:text-red-900" onclick="deleteCategory({{ $category->id}})">Delete</button>
                                             <button class="text-blue-600 hover:text-blue-900">Edit</button>
                                         </td>
                                     </tr>
@@ -136,5 +136,29 @@
             })
             .catch(error => console.error('Error:', error));
         });
+
+        function deleteCategory(categoryId) {
+        if (confirm('Are you sure you want to delete this category?')) {
+            console.log(`Deleting category with ID: ${categoryId}`);
+            fetch(`/api/categories/${categoryId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Failed to delete category');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to delete category');
+            });
+        }
+    }
     </script>
 </x-app-layout>
