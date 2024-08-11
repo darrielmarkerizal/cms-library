@@ -23,6 +23,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 // Books
 Route::post('/books', [BookController::class, 'store'])->name('books.store');
+Route::delete('/books/{book}', [BookController::class, 'destroy'])->name('books.destroy');
 
 // Categories
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');

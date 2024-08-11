@@ -80,8 +80,14 @@ class BookController extends Controller
     }
 
     public function destroy(Book $book)
-    {
+{
+    try {
         $book->delete();
-        return response()->json(null, 204);
+        
+        return redirect()->route('books.index')->with('success', 'Book deleted successfully.');
+    } catch (\Exception $e) {
+        return redirect()->route('books.index')->with('error', 'Failed to delete the book.')->withErrors($e->getMessage());
     }
+}
+
 }

@@ -28,6 +28,12 @@
                         </div>
                     @endif
 
+                    @if (session('success'))
+                        <div class="alert alert-success">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+
                     <div class="overflow-x-auto">
                         <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow">
                             <thead>
@@ -62,7 +68,13 @@
                                         <td class="px-4 py-4 text-sm text-gray-900">{{ $book->title }}</td>
                                         <td class="px-4 py-4 text-sm text-gray-900">{{ $book->description }}</td>
                                         <td class="px-4 py-4 text-sm text-gray-900">{{ $book->quantity }}</td>
-                                        <!--  -->
+                                        <td class="px-4 py-4 text-sm text-gray-900">
+                                            <form method="POST" action="{{ route('books.destroy', $book->id) }}" onsubmit="return confirm('Are you sure you want to delete this book?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
+                                            </form>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -79,6 +91,7 @@
             <form id="bookForm" method="POST" action="{{ route('books.store') }}" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" name="user_id" value="{{ Auth::id() }}">
+
                 <div class="mb-4">
                     <label for="title" class="block text-sm font-medium text-gray-700">Judul Buku</label>
                     <input
@@ -89,6 +102,7 @@
                         placeholder="Masukkan judul buku"
                     >
                 </div>
+
                 <div class="mb-4">
                     <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
                     <textarea
@@ -98,6 +112,7 @@
                         placeholder="Masukkan deskripsi buku"
                     ></textarea>
                 </div>
+
                 <div class="mb-4">
                     <label for="quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
                     <input
@@ -108,6 +123,7 @@
                         placeholder="Masukkan quantity buku"
                     >
                 </div>
+
                 <div class="mb-4">
                     <label for="category" class="block text-sm font-medium text-gray-700">Kategori</label>
                     <select
@@ -121,6 +137,7 @@
                         @endforeach
                     </select>
                 </div>
+
                 <div class="mb-4">
                     <label for="cover" class="block mb-2 text-sm font-medium text-gray-700">Cover Buku</label>
                     <input
@@ -131,6 +148,7 @@
                         accept="image/*"
                     >
                 </div>
+
                 <div class="mb-4">
                     <label for="pdf_file" class="block mb-2 text-sm font-medium text-gray-700">File Buku</label>
                     <input
@@ -141,6 +159,7 @@
                         accept=".pdf"
                     >
                 </div>
+
                 <div class="flex justify-end">
                     <button
                         type="button"
@@ -162,40 +181,39 @@
     </div>
 
     <script>
-    document.getElementById('openModal').addEventListener('click', function() {
-        document.getElementById('bookModal').classList.remove('hidden');
-    });
-
-    document.getElementById('bookForm').addEventListener('submit', function(event) {
-        event.preventDefault(); 
-
-        const formData = new FormData(this);
-
-        formData.append('user_id', '{{ Auth::id() }}');
-
-        fetch(this.action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
-            }
-        })
-        .then(response => {
-            if (response.status === 201) {
-                document.getElementById('bookModal').classList.add('hidden');
-                location.reload();
-            } else {
-                return response.json();
-            }
-        })
-        .then(data => {
-            if (data && !data.success) {
-                console.error('Error:', data);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
+        document.getElementById('openModal').addEventListener('click', function() {
+            document.getElementById('bookModal').classList.remove('hidden');
         });
-    });
-</script>
+
+        document.getElementById('bookForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+            formData.append('user_id', '{{ Auth::id() }}');
+
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+                }
+            })
+            .then(response => {
+                if (response.status === 201) {
+                    document.getElementById('bookModal').classList.add('hidden');
+                    location.reload();
+                } else {
+                    return response.json();
+                }
+            })
+            .then(data => {
+                if (data && !data.success) {
+                    console.error('Error:', data);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
 </x-app-layout>
