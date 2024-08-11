@@ -84,9 +84,9 @@ class BookController extends Controller
     try {
         $book->delete();
         
-        return redirect()->route('books.index')->with('success', 'Book deleted successfully.');
+        return redirect()->route('dashboard')->with('success', 'Book deleted successfully.');
     } catch (\Exception $e) {
-        return redirect()->route('books.index')->with('error', 'Failed to delete the book.')->withErrors($e->getMessage());
+        return redirect()->route('dashboard')->with('error', 'Failed to delete the book.')->withErrors($e->getMessage());
     }
 }
 
