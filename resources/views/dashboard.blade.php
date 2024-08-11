@@ -18,6 +18,16 @@
                         </button>
                     </div>
 
+                    <div class="mb-4">
+                        <label for="filterCategory" class="block text-sm font-medium text-gray-700">Filter Kategori</label>
+                        <select id="filterCategory" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                            <option value="">Semua Kategori</option>
+                            @foreach ($categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     @if ($errors->any())
                         <div class="mb-4">
                             <ul class="list-disc list-inside text-red-600">
@@ -64,25 +74,21 @@
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="bookTableBody">
                                 @foreach ($books as $book)
-                                    <tr class="border-b">
+                                    <tr class="border-b book-row" data-category-id="{{ $book->category_id }}">
                                         <td class="px-4 py-4 text-sm text-gray-900">{{ $loop->iteration }}</td>
                                         <td class="px-4 py-4 text-sm text-gray-900">
-                                            <img src="{{ asset('storage/' . $book->path_cover) }}" alt="Cover"
-                                                class="w-16 h-16 object-cover rounded-md">
+                                            <img src="{{ asset('storage/' . $book->path_cover) }}" alt="Cover" class="w-16 h-16 object-cover rounded-md">
                                         </td>
                                         <td class="px-4 py-4 text-sm text-gray-900">{{ $book->title }}</td>
                                         <td class="px-4 py-4 text-sm text-gray-900">{{ $book->description }}</td>
                                         <td class="px-4 py-4 text-sm text-gray-900">{{ $book->quantity }}</td>
                                         <td class="px-4 py-4 text-sm text-gray-900 space-x-2">
-                                            <form method="POST" action="{{ route('books.destroy', $book->id) }}"
-                                                onsubmit="return confirm('Are you sure you want to delete this book?');"
-                                                class="inline">
+                                            <form method="POST" action="{{ route('books.destroy', $book->id) }}" onsubmit="return confirm('Are you sure you want to delete this book?');" class="inline">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit"
-                                                    class="text-red-600 hover:text-red-900">Delete</button>
+                                                <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
                                             </form>
                                             <button class="text-blue-600 hover:text-blue-900">Edit</button>
                                             <a href="{{ route('books.download', $book->id) }}" class="text-green-600 hover:text-green-900">Download</a>
@@ -197,6 +203,20 @@
                 .catch(error => {
                     console.error('Error:', error);
                 });
+        });
+
+        document.getElementById('filterCategory').addEventListener('change', function() {
+            const selectedCategory = this.value;
+            const rows = document.querySelectorAll('.book-row');
+
+            rows.forEach(row => {
+                const categoryId = row.getAttribute('data-category-id');
+                if (selectedCategory === "" || categoryId === selectedCategory) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
         });
     </script>
 </x-app-layout>
