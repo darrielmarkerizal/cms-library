@@ -30,4 +30,6 @@ Route::get('/books/download/{id}', [BookController::class, 'download'])->name('b
 
 
 // Categories
-Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+Route::get('/kategori', [CategoryController::class, 'index'])->name('categories.index');
+Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');

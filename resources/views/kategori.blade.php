@@ -81,12 +81,6 @@
                         placeholder="Masukkan nama kategori">
                 </div>
 
-                <div class="mb-4">
-                    <label for="description" class="block text-sm font-medium text-gray-700">Deskripsi</label>
-                    <textarea name="description" id="description" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-                        placeholder="Masukkan deskripsi kategori"></textarea>
-                </div>
-
                 <div class="flex justify-end">
                     <button type="button" id="closeModal"
                         class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
@@ -109,12 +103,38 @@
         document.getElementById('categoryForm').addEventListener('submit', function(event) {
             event.preventDefault();
 
-            // Logic to handle form submission without actual action
-            const formData = new FormData(this);
+            let formData = new FormData(this);
 
-            // Simulating successful form submission
-            document.getElementById('categoryModal').classList.add('hidden');
-            location.reload();
+            fetch('{{ route('categories.store') }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.message);
+                } else {
+                    let tableBody = document.querySelector('table tbody');
+                    let newRow = document.createElement('tr');
+                    newRow.classList.add('border-b');
+                    newRow.innerHTML = `
+                        <td class="px-4 py-4 text-sm text-gray-900">${tableBody.children.length + 1}</td>
+                        <td class="px-4 py-4 text-sm text-gray-900">${data.name}</td>
+                        <td class="px-4 py-4 text-sm text-gray-900 space-x-2">
+                            <button class="text-red-600 hover:text-red-900">Delete</button>
+                            <button class="text-blue-600 hover:text-blue-900">Edit</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(newRow);
+                    document.getElementById('categoryModal').classList.add('hidden');
+                    document.getElementById('categoryForm').reset();
+                }
+            })
+            .catch(error => console.error('Error:', error));
         });
     </script>
 </x-app-layout>

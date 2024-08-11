@@ -10,7 +10,7 @@ class BookController extends Controller
 {
     public function index()
 {
-    $books = Book::where('user_id', auth()->id())->get();
+    $books = Book::all();
     $categories = Category::all();
     return view('dashboard', compact('books', 'categories'));
 }
